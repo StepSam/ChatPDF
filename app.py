@@ -40,14 +40,19 @@ import os
 import streamlit as st
 from docx import Document
 from langchain.chains import ConversationalRetrievalChain
-from langchain.chat_models import ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from PyPDF2 import PdfReader
+from langchain_nvidia_ai_endpoints import ChatNVIDIA, NVIDIAEmbeddings
+from openai import OpenAI
 
-os.environ["OPENAI_API_KEY"] = ""  # OPENAI_API_KEY
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "" #Deepseek via NVIDIA NIM API
+)
+
+os.environ["NVIDIA_API_KEY"] = ""  #Deepseek via NVIDIA NIM API
 
 
 def parse_docx(data):
@@ -91,7 +96,7 @@ def get_text(docs):
         if ".pdf" in doc.name:
             pdf_reader = PdfReader(doc)
             for each_page in pdf_reader.pages:
-                doc_text += each_page.extractText()
+                doc_text += each_page.extract_text()
             doc_text += "\n"
         elif ".docx" in doc.name:
             doc_text += parse_docx(data=doc)
@@ -134,7 +139,7 @@ def get_vector(chunks):
     FAISS
         FAISS vector store containing vectors of the provided text chunks.
     """
-    return FAISS.from_texts(texts=chunks, embedding=OpenAIEmbeddings())
+    return FAISS.from_texts(texts=chunks, embedding=NVIDIAEmbeddings())
 
 
 def get_llm_chain(vectors):
@@ -152,7 +157,7 @@ def get_llm_chain(vectors):
         A conversational retrieval chain instance ready for processing user queries.
     """
     llm_chain = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7),
+        llm=ChatNVIDIA(model="deepseek-ai/deepseek-r1", temperature=0.7),
         retriever=vectors.as_retriever(),
         memory=ConversationBufferMemory(
             memory_key="chat_history", return_messages=True
