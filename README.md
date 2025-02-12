@@ -83,6 +83,8 @@ Before you begin, ensure that you have the following prerequisites installed:
 > - `pip install faiss-cpu`
 > - `pip install python-docx`
 > - `pip install PyPDF2`
+> - `pip install langchain_community`
+> - `pip install langchain_nvidia_ai_endpoints`
 
 
 ### 📦 Installation
